@@ -17,10 +17,10 @@ public class PainelHome {
         painelPrincipal.setSpacing(10); // Espaçamento entre os elementos
         painelPrincipal.setStyle("-fx-background-color: #2F3336;");
 
-        // Painel superior branco para o título
         VBox painelTitulo = new VBox();
-        painelTitulo.setAlignment(Pos.TOP_LEFT);
-        painelTitulo.setStyle("-fx-background-color: white; -fx-padding: 10;");
+        painelTitulo.setSpacing(10);
+        painelTitulo.setPadding(new Insets(20));
+        painelTitulo.setStyle("-fx-background-color: #2F3336");
 
         Label lblTitulo = new Label("Seja Bem-Vindo!");
         lblTitulo.setStyle("-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1563cd;");

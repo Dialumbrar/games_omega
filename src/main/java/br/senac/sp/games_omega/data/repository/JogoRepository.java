@@ -54,4 +54,8 @@ public class JogoRepository {
         // Agora retornamos a lista preenchida em vez de null
         return listaJogos;
     }
+
+    public void salvar(Jogo jogo){
+
+    }
 }

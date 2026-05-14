@@ -4,6 +4,7 @@ module br.senac.sp.games_omega {
 
     requires org.controlsfx.controls;
     requires java.desktop;
+    requires java.sql;
 
     opens br.senac.sp.games_omega to javafx.fxml;
     opens br.senac.sp.games_omega.model to javafx.base;
