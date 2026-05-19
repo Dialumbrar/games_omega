@@ -33,48 +33,34 @@ public class PainelJogos {
         VBox.setVgrow(tabelaJogos, Priority.ALWAYS);
 
         // 2. Configuração de TODAS as colunas
-
-        // Coluna ID
         TableColumn<Jogo, Integer> colId = new TableColumn<>("ID");
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colId.setMaxWidth(50);
 
-        // Coluna Título
         TableColumn<Jogo, String> colTitulo = new TableColumn<>("Título");
         colTitulo.setCellValueFactory(new PropertyValueFactory<>("titulo"));
 
-        // Coluna Plataforma
         TableColumn<Jogo, String> colPlat = new TableColumn<>("Plataforma");
         colPlat.setCellValueFactory(new PropertyValueFactory<>("plataforma"));
 
-        // Coluna Categoria
         TableColumn<Jogo, String> colCat = new TableColumn<>("Categoria");
         colCat.setCellValueFactory(new PropertyValueFactory<>("categoria"));
 
-        // Coluna Estúdio
         TableColumn<Jogo, String> colEstudio = new TableColumn<>("Estúdio");
         colEstudio.setCellValueFactory(new PropertyValueFactory<>("estudio"));
 
-        // Coluna Preço
         TableColumn<Jogo, Double> colPreco = new TableColumn<>("Preço");
         colPreco.setCellValueFactory(new PropertyValueFactory<>("preco"));
 
-        // Coluna Lançamento
         TableColumn<Jogo, LocalDate> colData = new TableColumn<>("Lançamento");
         colData.setCellValueFactory(new PropertyValueFactory<>("dataLancamento"));
 
-        // 3. Adicionar colunas à tabela na ordem desejada
+        // 3. Adicionar colunas à tabela
         tabelaJogos.getColumns().addAll(
-                colId,
-                colTitulo,
-                colPlat,
-                colCat,
-                colEstudio,
-                colPreco,
-                colData
+                colId, colTitulo, colPlat, colCat, colEstudio, colPreco, colData
         );
 
-        // 4. Carregar os dados do repositório
+        // 4. Carregar os dados do repositório ao abrir a tela
         JogoRepository repository = new JogoRepository();
         tabelaJogos.setItems(repository.getJogos());
 
@@ -85,17 +71,51 @@ public class PainelJogos {
         Button btnEditar = criarBotao("Editar", "/imagens/editar.png");
         Button btnLixeira = criarBotao("Lixeira", "/imagens/lixeira.png");
 
-        // --- LÓGICA PARA ABRIR A TELA ---
+        // --- LÓGICA PARA ABRIR A TELA DE ADICIONAR ---
         btnAdicionar.setOnAction(event -> {
             TelaJogo telaCadastro = new TelaJogo();
-            // Captura a janela atual para ser a "mãe" da nova janela
             Stage stagePrincipal = (Stage) painelJogos.getScene().getWindow();
+
+            // Abre a janela e pausa até ela fechar
             telaCadastro.criarTela(stagePrincipal);
+
+            // Atualiza a tabela após fechar a janela
+            tabelaJogos.setItems(repository.getJogos());
         });
 
-        painelBotoes.getChildren().addAll(btnAdicionar, btnExcluir, btnEditar, btnLixeira);
+        // --- LÓGICA PARA O BOTÃO EXCLUIR (AGORA NO LUGAR CERTO) ---
+        btnExcluir.setOnAction(event -> {
+            // 1. Pega o jogo selecionado na tabela
+            Jogo jogoSelecionado = tabelaJogos.getSelectionModel().getSelectedItem();
 
-        // Adicionar componentes ao painel
+            // 2. Valida se há linha selecionada
+            if (jogoSelecionado == null) {
+                Alert alerta = new Alert(Alert.AlertType.WARNING);
+                alerta.setTitle("Nenhum jogo selecionado");
+                alerta.setHeaderText(null);
+                alerta.setContentText("Por favor, selecione um jogo na tabela para poder excluir!");
+                alerta.showAndWait();
+                return;
+            }
+
+            // 3. Caixa de confirmação de segurança
+            Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmacao.setTitle("Confirmar Exclusão");
+            confirmacao.setHeaderText(null);
+            confirmacao.setContentText("Tem certeza que deseja excluir o jogo '" + jogoSelecionado.getTitulo() + "'?");
+
+            // Mostra o alerta e espera a resposta do usuário (Troca do 'var' pelo tipo explícito)
+            java.util.Optional<ButtonType> resposta = confirmacao.showAndWait();
+
+            // 4. Se confirmado, deleta e atualiza a View
+            if (resposta.isPresent() && resposta.get() == ButtonType.OK) {
+                repository.excluir(jogoSelecionado.getId());
+                tabelaJogos.setItems(repository.getJogos());
+            }
+        });
+
+        // Organização dos elementos no layout
+        painelBotoes.getChildren().addAll(btnAdicionar, btnExcluir, btnEditar, btnLixeira);
         painelJogos.getChildren().addAll(lbTitulo, linha, painelBotoes, tabelaJogos);
 
         return painelJogos;

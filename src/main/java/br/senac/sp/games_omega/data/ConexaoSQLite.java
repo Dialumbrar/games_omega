@@ -9,7 +9,7 @@ public class ConexaoSQLite {
     public static Connection getConexao(){
 
         // String de Conexão - url do banco de dados
-        String url = "jdbc:sqlite:/C:\\Users\\thiago.jsantos12\\OneDrive - SENAC - SP\\_Cursos\\Tecnico Desenvolvimento de Sistemas\\UC7\\Banco de Dados\\db_game_omega";
+        String url = "jdbc:sqlite:C:/Users/thiago.jsantos12/OneDrive - SENAC - SP/_Cursos/Tecnico Desenvolvimento de Sistemas/UC7/Banco de Dados/db_game_omega.db";
 
         try {
             Connection conexao = DriverManager.getConnection(url);

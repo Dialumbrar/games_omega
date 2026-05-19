@@ -3,6 +3,7 @@ module br.senac.sp.games_omega {
     requires javafx.fxml;
 
     requires org.controlsfx.controls;
+    requires org.xerial.sqlitejdbc;
     requires java.desktop;
     requires java.sql;
 
