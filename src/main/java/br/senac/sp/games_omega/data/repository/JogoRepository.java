@@ -109,7 +109,39 @@ public class JogoRepository {
         return 1;
     }
 
-    // Método para deletar um jogo do banco pelo ID
+    // 4. METODO PARA ATUALIZAR UM JOGO EXISTENTE (UPDATE)
+    public void atualizar(Jogo jogo) {
+        String sql = "UPDATE games SET titulo = ?, id_plataforma = ?, id_categoria = ?, " +
+                "id_estudio = ?, preco = ?, data_lancamento = ?, finalizado = ? WHERE id = ?";
+
+        try (Connection conn = ConexaoSQLite.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // Descobre os IDs estrangeiros com base no texto selecionado
+            int idPlataforma = buscarIdPorNome(conn, "plataformas", jogo.getPlataforma());
+            int idCategoria = buscarIdPorNome(conn, "categorias", jogo.getCategoria());
+            int idEstudio = buscarIdPorNome(conn, "estudios", jogo.getEstudio());
+
+            stmt.setString(1, jogo.getTitulo());
+            stmt.setInt(2, idPlataforma);
+            stmt.setInt(3, idCategoria);
+            stmt.setInt(4, idEstudio);
+            stmt.setDouble(5, jogo.getPreco());
+
+            stmt.setString(6, (jogo.getDataLancamento() != null) ? jogo.getDataLancamento().toString() : null);
+            stmt.setInt(7, jogo.isFinalizado() ? 1 : 0);
+            stmt.setInt(8, jogo.getId()); // Onde id bate com o jogo sendo editado
+
+            stmt.executeUpdate();
+            System.out.println("Jogo ID " + jogo.getId() + " atualizado com sucesso!");
+
+        } catch (SQLException e) {
+            System.err.println("Erro ao atualizar o jogo no banco de dados:");
+            e.printStackTrace();
+        }
+    }
+
+    // Metodo para deletar um jogo do banco pelo ID
     public void excluir(int id) {
         String sql = "DELETE FROM games WHERE id = ?";
 

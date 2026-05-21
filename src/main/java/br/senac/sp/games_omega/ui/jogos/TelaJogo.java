@@ -20,8 +20,20 @@ import java.time.LocalDate;
 
 public class TelaJogo {
 
-    // Instancia o repositório para salvar no banco SQLite
     private final JogoRepository jogoRepository = new JogoRepository();
+
+    // ATRIBUTOS GLOBAIS DA CLASSE (Permitem o preenchimento de fora no modo Edição)
+    private TextField txtId;
+    private TextField txtTitulo;
+    private ComboBox<String> cbPlataforma;
+    private ComboBox<String> cbEstudio;
+    private ComboBox<String> cbCategoria;
+    private TextField txtPreco;
+    private DatePicker dpLancamento;
+    private CheckBox cbFinalizado;
+
+    // Objeto que guardará os dados do jogo caso a tela seja aberta para Editar
+    private Jogo jogoEmEdicao = null;
 
     public void criarTela(Stage stagePai) {
         Stage stage = new Stage();
@@ -44,24 +56,22 @@ public class TelaJogo {
         grid.setHgap(10);
         grid.setVgap(12);
 
-        // --- CAMPOS DO FORMULÁRIO ---
-        TextField txtId = new TextField();
+        // --- INICIALIZAÇÃO DOS CAMPOS DO FORMULÁRIO (Instanciando os atributos globais) ---
+        txtId = new TextField();
         txtId.setDisable(true);
         txtId.setPrefWidth(80);
         txtId.setMaxWidth(80);
 
-        TextField txtTitulo = new TextField();
+        txtTitulo = new TextField();
 
-        // Menu para Plataforma
-        ComboBox<String> cbPlataforma = new ComboBox<>();
+        cbPlataforma = new ComboBox<>();
         cbPlataforma.setItems(FXCollections.observableArrayList(
                 "PC", "PlayStation 5", "Xbox Series X", "Nintendo Switch", "Mobile"
         ));
         cbPlataforma.setPromptText("Selecione a plataforma...");
         cbPlataforma.setMaxWidth(Double.MAX_VALUE);
 
-        // Menu para Estúdio
-        ComboBox<String> cbEstudio = new ComboBox<>();
+        cbEstudio = new ComboBox<>();
         cbEstudio.setItems(FXCollections.observableArrayList(
                 "CD Projekt Red", "ConcernedApe", "FromSoftware", "Insomniac Games",
                 "Nintendo", "Playground Games", "Rockstar Games", "Santa Monica Studio",
@@ -70,8 +80,7 @@ public class TelaJogo {
         cbEstudio.setPromptText("Selecione o estúdio...");
         cbEstudio.setMaxWidth(Double.MAX_VALUE);
 
-        // Menu Categoria
-        ComboBox<String> cbCategoria = new ComboBox<>();
+        cbCategoria = new ComboBox<>();
         cbCategoria.setItems(FXCollections.observableArrayList(
                 "Ação/Aventura", "Metroidvania", "RPG", "Ação", "Corrida",
                 "Simulação", "Ação/Mundo Aberto", "Roguelike"
@@ -79,12 +88,22 @@ public class TelaJogo {
         cbCategoria.setPromptText("Selecione a categoria...");
         cbCategoria.setMaxWidth(Double.MAX_VALUE);
 
-        TextField txtPreco = new TextField();
-        DatePicker dpLancamento = new DatePicker();
-        dpLancamento.setPrefWidth(200);
-        CheckBox cbFinalizado = new CheckBox();
+        txtPreco = new TextField();
 
-        // Adicionando ao Grid
+        dpLancamento = new DatePicker();
+        dpLancamento.setPrefWidth(200);
+        // TRATAMENTO: Impede a digitação manual quebrada, forçando o uso do calendário
+        dpLancamento.getEditor().setDisable(true);
+        dpLancamento.getEditor().setStyle("-fx-opacity: 1; -fx-text-fill: black;");
+
+        cbFinalizado = new CheckBox();
+
+        // Se a tela foi aberta no modo edição, preenchemos os campos imediatamente antes de desenhar
+        if (jogoEmEdicao != null) {
+            preencherCamposFormulario(jogoEmEdicao);
+        }
+
+        // Adicionando elementos ao Grid
         grid.add(new Label("ID:"), 0, 0);
         grid.add(txtId, 1, 0);
 
@@ -120,16 +139,33 @@ public class TelaJogo {
         Button btnSalvar = criarBotaoIcone("/imagens/salvar.png");
         Button btnCancelar = criarBotaoIcone("/imagens/cancelar.png");
 
-        // --- AÇÃO DO BOTÃO SALVAR (ATUALIZADA SEM FECHAR A TELA) ---
+        // --- AÇÃO DO BOTÃO SALVAR (ADAPTADO PARA SALVAR OU ATUALIZAR) ---
         btnSalvar.setOnAction(e -> {
-            if (txtTitulo.getText().trim().isEmpty() || cbPlataforma.getValue() == null ||
-                    cbCategoria.getValue() == null || cbEstudio.getValue() == null || txtPreco.getText().trim().isEmpty()) {
+            // 1. Validação de campos vazios/nulos
+            if (txtTitulo.getText().trim().isEmpty() ||
+                    cbPlataforma.getValue() == null ||
+                    cbCategoria.getValue() == null ||
+                    cbEstudio.getValue() == null ||
+                    txtPreco.getText().trim().isEmpty() ||
+                    dpLancamento.getValue() == null) {
 
                 Alert alerta = new Alert(Alert.AlertType.WARNING);
-                alerta.setTitle("Campos Vazios");
-                alerta.setHeaderText(null);
-                alerta.setContentText("Por favor, preencha todos os campos antes de salvar!");
+                alerta.setTitle("Campos Obrigatórios");
+                alerta.setHeaderText("Não foi possível salvar");
+                alerta.setContentText("Por favor, preencha todos os campos, incluindo uma data de lançamento válida!");
                 alerta.showAndWait();
+                return;
+            }
+
+            // 2. Validação estrita do Preço
+            String precoTexto = txtPreco.getText().trim().replace(",", ".");
+            if (!precoTexto.matches("\\d+(\\.\\d{1,2})?")) {
+                Alert alerta = new Alert(Alert.AlertType.ERROR);
+                alerta.setTitle("Preço Inválido");
+                alerta.setHeaderText("Erro no formato do valor");
+                alerta.setContentText("O preço deve ser um número válido positivo (Ex: 199.90).\nNão utilize letras ou caracteres especiais.");
+                alerta.showAndWait();
+                txtPreco.requestFocus();
                 return;
             }
 
@@ -138,48 +174,63 @@ public class TelaJogo {
                 String plataforma = cbPlataforma.getValue();
                 String categoria = cbCategoria.getValue();
                 String estudio = cbEstudio.getValue();
-                double preco = Double.parseDouble(txtPreco.getText().trim().replace(",", "."));
+                double preco = Double.parseDouble(precoTexto);
                 LocalDate dataLancamento = dpLancamento.getValue();
                 boolean finalizado = cbFinalizado.isSelected();
 
-                Jogo novoJogo = new Jogo(0, titulo, plataforma, categoria, estudio, preco, dataLancamento, finalizado);
+                btnSalvar.setDisable(true);
 
-                jogoRepository.salvar(novoJogo);
+                // Define se usa o ID existente (Edição) ou 0 (Novo Cadastro)
+                int idAtual = (jogoEmEdicao != null) ? jogoEmEdicao.getId() : 0;
+                Jogo jogoObj = new Jogo(idAtual, titulo, plataforma, categoria, estudio, preco, dataLancamento, finalizado);
 
-                // ALERTA INFORMATIVO DE SUCESSO
-                Alert alertaSucesso = new Alert(Alert.AlertType.INFORMATION);
-                alertaSucesso.setTitle("Sucesso!");
-                alertaSucesso.setHeaderText(null);
-                alertaSucesso.setContentText("Jogo '" + titulo + "' cadastrado com sucesso!");
-                alertaSucesso.showAndWait();
+                if (jogoEmEdicao != null) {
+                    // MODO EDIÇÃO: Executa o comando UPDATE no SQLite
+                    jogoRepository.atualizar(jogoObj);
 
-                // LIMPA OS CAMPOS PARA PODER CADASTRAR OUTRO EM SEGUIDA
-                txtTitulo.clear();
-                cbPlataforma.setValue(null);
-                cbCategoria.setValue(null);
-                cbEstudio.setValue(null);
-                txtPreco.clear();
-                dpLancamento.setValue(null);
-                cbFinalizado.setSelected(false);
+                    Alert alertaSucesso = new Alert(Alert.AlertType.INFORMATION);
+                    alertaSucesso.setTitle("Jogo Atualizado!");
+                    alertaSucesso.setHeaderText(null);
+                    alertaSucesso.setContentText("O jogo '" + titulo + "' foi atualizado com sucesso!");
+                    alertaSucesso.showAndWait();
 
-                txtTitulo.requestFocus();
+                    // Fecha a janela logo após concluir a edição
+                    stage.close();
+                } else {
+                    // MODO INSERÇÃO: Executa o comando INSERT no SQLite
+                    jogoRepository.salvar(jogoObj);
 
-            } catch (NumberFormatException ex) {
+                    Alert alertaSucesso = new Alert(Alert.AlertType.INFORMATION);
+                    alertaSucesso.setTitle("Jogo Cadastrado!");
+                    alertaSucesso.setHeaderText(null);
+                    alertaSucesso.setContentText("O jogo '" + titulo + "' foi salvo com sucesso!");
+                    alertaSucesso.showAndWait();
+
+                    // Limpeza padrão apenas para novos cadastros sequenciais
+                    txtTitulo.clear();
+                    cbPlataforma.setValue(null);
+                    cbCategoria.setValue(null);
+                    cbEstudio.setValue(null);
+                    txtPreco.clear();
+                    dpLancamento.setValue(null);
+                    cbFinalizado.setSelected(false);
+                    txtTitulo.requestFocus();
+                }
+
+            } catch (Exception ex) {
                 Alert alerta = new Alert(Alert.AlertType.ERROR);
-                alerta.setTitle("Erro no Preço");
-                alerta.setHeaderText(null);
-                alerta.setContentText("O preço digitado é inválido. Digite apenas números e pontos.");
+                alerta.setTitle("Erro inesperado");
+                alerta.setContentText("Ocorreu um problema ao tentar salvar o registro: " + ex.getMessage());
                 alerta.showAndWait();
+            } finally {
+                btnSalvar.setDisable(false);
             }
         });
 
         // AÇÃO DO BOTÃO CANCELAR
         btnCancelar.setOnAction(e -> stage.close());
 
-        // ADICIONA OS BOTÕES AO PAINEL INFERIOR
         painelBotoes.getChildren().addAll(btnSalvar, btnCancelar);
-
-        // 4. MONTAGEM FINAL DA JANELA (O QUE HAVIA SUMIDO)
         raiz.getChildren().addAll(painelTitulo, painelFormulario, painelBotoes);
 
         Scene cena = new Scene(raiz, 600, 550);
@@ -191,9 +242,26 @@ public class TelaJogo {
             System.err.println("Erro ao carregar ícone da aplicação");
         }
 
-        stage.setTitle("Cadastro de Jogo");
+        stage.setTitle(jogoEmEdicao != null ? "Editar Jogo" : "Cadastro de Jogo");
         stage.setResizable(false);
-        stage.showAndWait(); // Segura a execução aqui
+        stage.showAndWait();
+    }
+
+    // Metodo chamado pelo PainelJogos para sinalizar que a tela deve abrir carregando dados existentes
+    public void configurarModoEdicao(Jogo jogo) {
+        this.jogoEmEdicao = jogo;
+    }
+
+    // Preenche os componentes visuais do formulário com os dados vindos da tabela
+    private void preencherCamposFormulario(Jogo jogo) {
+        txtId.setText(String.valueOf(jogo.getId()));
+        txtTitulo.setText(jogo.getTitulo());
+        cbPlataforma.setValue(jogo.getPlataforma());
+        cbEstudio.setValue(jogo.getEstudio());
+        cbCategoria.setValue(jogo.getCategoria());
+        txtPreco.setText(String.valueOf(jogo.getPreco()));
+        dpLancamento.setValue(jogo.getDataLancamento());
+        cbFinalizado.setSelected(jogo.isFinalizado());
     }
 
     private HBox criarPainelTitulo() {
@@ -203,7 +271,7 @@ public class TelaJogo {
         painelTitulo.setStyle("-fx-background-color: #0d3b3f;");
 
         try {
-            Image image = new Image(getClass().getResourceAsStream("/imagens/adicionar.png"));
+            Image image = new Image(getClass().getResourceAsStream("/imagens/cadastro.png"));
             ImageView imageView = new ImageView(image);
             imageView.setFitHeight(30);
             imageView.setFitWidth(30);
@@ -212,7 +280,7 @@ public class TelaJogo {
             System.err.println("Erro ao carregar ícone do título");
         }
 
-        Label lbTitulo = new Label("Cadastro de Jogo");
+        Label lbTitulo = new Label(jogoEmEdicao != null ? "Editar Jogo Selecionado" : "Cadastro de Jogo");
         lbTitulo.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: white;");
         painelTitulo.getChildren().add(lbTitulo);
 
@@ -233,6 +301,4 @@ public class TelaJogo {
         btn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
         return btn;
     }
-
-
 }

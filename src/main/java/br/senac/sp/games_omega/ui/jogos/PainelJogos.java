@@ -83,7 +83,7 @@ public class PainelJogos {
             tabelaJogos.setItems(repository.getJogos());
         });
 
-        // --- LÓGICA PARA O BOTÃO EXCLUIR (AGORA NO LUGAR CERTO) ---
+        // --- LÓGICA PARA O BOTÃO EXCLUIR COM CONFIGURAÇÃO "SIM" OU "NÃO" ---
         btnExcluir.setOnAction(event -> {
             // 1. Pega o jogo selecionado na tabela
             Jogo jogoSelecionado = tabelaJogos.getSelectionModel().getSelectedItem();
@@ -98,20 +98,55 @@ public class PainelJogos {
                 return;
             }
 
-            // 3. Caixa de confirmação de segurança
+            // 3. Criação dos botões customizados em Português
+            ButtonType btnSim = new ButtonType("Sim", ButtonBar.ButtonData.YES);
+            ButtonType btnNao = new ButtonType("Não", ButtonBar.ButtonData.NO);
+
+            // 4. Caixa de confirmação personalizada
             Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
             confirmacao.setTitle("Confirmar Exclusão");
             confirmacao.setHeaderText(null);
             confirmacao.setContentText("Tem certeza que deseja excluir o jogo '" + jogoSelecionado.getTitulo() + "'?");
 
-            // Mostra o alerta e espera a resposta do usuário (Troca do 'var' pelo tipo explícito)
+            // Altera os botões padrão da caixa para os nossos botões customizados
+            confirmacao.getButtonTypes().setAll(btnSim, btnNao);
+
+            // Mostra o alerta e espera a resposta do utilizador
             java.util.Optional<ButtonType> resposta = confirmacao.showAndWait();
 
-            // 4. Se confirmado, deleta e atualiza a View
-            if (resposta.isPresent() && resposta.get() == ButtonType.OK) {
+            // 5. Se o utilizador clicou em "Sim", deleta e atualiza a View
+            if (resposta.isPresent() && resposta.get() == btnSim) {
                 repository.excluir(jogoSelecionado.getId());
-                tabelaJogos.setItems(repository.getJogos());
+                tabelaJogos.setItems(repository.getJogos()); // Atualiza a tabela com os dados do SQLite
             }
+        });
+
+        // --- LÓGICA PARA O BOTÃO EDITAR ---
+        btnEditar.setOnAction(event -> {
+            // 1. Pega o jogo selecionado na tabela
+            Jogo jogoSelecionado = tabelaJogos.getSelectionModel().getSelectedItem();
+
+            // 2. Valida se o utilizador selecionou uma linha
+            if (jogoSelecionado == null) {
+                Alert alerta = new Alert(Alert.AlertType.WARNING);
+                alerta.setTitle("Nenhum jogo selecionado");
+                alerta.setHeaderText(null);
+                alerta.setContentText("Por favor, selecione um jogo na tabela para poder editar!");
+                alerta.showAndWait();
+                return;
+            }
+
+            // 3. Abre a tela de cadastro, mas configurada para EDITAR
+            TelaJogo telaEdicao = new TelaJogo();
+
+            // Passa o objeto selecionado para preencher o formulário
+            telaEdicao.configurarModoEdicao(jogoSelecionado);
+
+            Stage stagePrincipal = (Stage) painelJogos.getScene().getWindow();
+            telaEdicao.criarTela(stagePrincipal);
+
+            // 4. Atualiza a tabela após fechar a janela para mostrar as alterações
+            tabelaJogos.setItems(repository.getJogos());
         });
 
         // Organização dos elementos no layout
