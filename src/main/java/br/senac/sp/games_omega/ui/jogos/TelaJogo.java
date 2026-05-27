@@ -22,7 +22,7 @@ public class TelaJogo {
 
     private final JogoRepository jogoRepository = new JogoRepository();
 
-    // ATRIBUTOS GLOBAIS DA CLASSE (Permitem o preenchimento de fora no modo Edição)
+    // ATRIBUTOS GLOBAIS DA CLASSE
     private TextField txtId;
     private TextField txtTitulo;
     private ComboBox<String> cbPlataforma;
@@ -43,7 +43,7 @@ public class TelaJogo {
         VBox raiz = new VBox();
         raiz.setStyle("-fx-background-color: #f4f4f4;");
 
-        // 1. Cabeçalho Azul Escuro
+        // 1. Cabeçalho Dinâmico
         HBox painelTitulo = criarPainelTitulo();
 
         // 2. Painel do Formulário
@@ -56,7 +56,7 @@ public class TelaJogo {
         grid.setHgap(10);
         grid.setVgap(12);
 
-        // --- INICIALIZAÇÃO DOS CAMPOS DO FORMULÁRIO (Instanciando os atributos globais) ---
+        // --- INICIALIZAÇÃO DOS CAMPOS ---
         txtId = new TextField();
         txtId.setDisable(true);
         txtId.setPrefWidth(80);
@@ -92,13 +92,11 @@ public class TelaJogo {
 
         dpLancamento = new DatePicker();
         dpLancamento.setPrefWidth(200);
-        // TRATAMENTO: Impede a digitação manual quebrada, forçando o uso do calendário
         dpLancamento.getEditor().setDisable(true);
         dpLancamento.getEditor().setStyle("-fx-opacity: 1; -fx-text-fill: black;");
 
         cbFinalizado = new CheckBox();
 
-        // Se a tela foi aberta no modo edição, preenchemos os campos imediatamente antes de desenhar
         if (jogoEmEdicao != null) {
             preencherCamposFormulario(jogoEmEdicao);
         }
@@ -139,9 +137,8 @@ public class TelaJogo {
         Button btnSalvar = criarBotaoIcone("/imagens/salvar.png");
         Button btnCancelar = criarBotaoIcone("/imagens/cancelar.png");
 
-        // --- AÇÃO DO BOTÃO SALVAR (ADAPTADO PARA SALVAR OU ATUALIZAR) ---
+        // --- AÇÃO DO BOTÃO SALVAR ---
         btnSalvar.setOnAction(e -> {
-            // 1. Validação de campos vazios/nulos
             if (txtTitulo.getText().trim().isEmpty() ||
                     cbPlataforma.getValue() == null ||
                     cbCategoria.getValue() == null ||
@@ -157,7 +154,6 @@ public class TelaJogo {
                 return;
             }
 
-            // 2. Validação estrita do Preço
             String precoTexto = txtPreco.getText().trim().replace(",", ".");
             if (!precoTexto.matches("\\d+(\\.\\d{1,2})?")) {
                 Alert alerta = new Alert(Alert.AlertType.ERROR);
@@ -166,6 +162,44 @@ public class TelaJogo {
                 alerta.setContentText("O preço deve ser um número válido positivo (Ex: 199.90).\nNão utilize letras ou caracteres especiais.");
                 alerta.showAndWait();
                 txtPreco.requestFocus();
+                return;
+            }
+
+            ButtonType btnSim = new ButtonType("Sim", ButtonBar.ButtonData.YES);
+            ButtonType btnNao = new ButtonType("Não", ButtonBar.ButtonData.NO);
+
+            Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmacao.setTitle("Confirmar Operação");
+            confirmacao.setHeaderText(null);
+            confirmacao.getButtonTypes().setAll(btnSim, btnNao);
+
+            String caminhoIcone = (jogoEmEdicao != null) ? "/imagens/editar.png" : "/imagens/salvar.png";
+
+            if (jogoEmEdicao != null) {
+                confirmacao.setContentText("Deseja realmente salvar as alterações deste jogo?");
+            } else {
+                confirmacao.setContentText("Deseja realmente cadastrar este novo jogo?");
+            }
+
+            Stage alertStage = (Stage) confirmacao.getDialogPane().getScene().getWindow();
+            try {
+                alertStage.getIcons().add(new Image(getClass().getResourceAsStream(caminhoIcone)));
+            } catch (Exception ex) {
+                System.err.println("Não foi possível carregar o ícone na barra do alerta.");
+            }
+
+            try {
+                ImageView imagemCustomizada = new ImageView(new Image(getClass().getResourceAsStream(caminhoIcone)));
+                imagemCustomizada.setFitWidth(32);
+                imagemCustomizada.setFitHeight(32);
+                confirmacao.setGraphic(imagemCustomizada);
+            } catch (Exception ex) {
+                System.err.println("Não foi possível carregar o ícone interno do alerta.");
+            }
+
+            java.util.Optional<ButtonType> resposta = confirmacao.showAndWait();
+
+            if (!resposta.isPresent() || resposta.get() != btnSim) {
                 return;
             }
 
@@ -180,12 +214,11 @@ public class TelaJogo {
 
                 btnSalvar.setDisable(true);
 
-                // Define se usa o ID existente (Edição) ou 0 (Novo Cadastro)
                 int idAtual = (jogoEmEdicao != null) ? jogoEmEdicao.getId() : 0;
                 Jogo jogoObj = new Jogo(idAtual, titulo, plataforma, categoria, estudio, preco, dataLancamento, finalizado);
 
                 if (jogoEmEdicao != null) {
-                    // MODO EDIÇÃO: Executa o comando UPDATE no SQLite
+                    // MODO EDIÇÃO
                     jogoRepository.atualizar(jogoObj);
 
                     Alert alertaSucesso = new Alert(Alert.AlertType.INFORMATION);
@@ -194,10 +227,9 @@ public class TelaJogo {
                     alertaSucesso.setContentText("O jogo '" + titulo + "' foi atualizado com sucesso!");
                     alertaSucesso.showAndWait();
 
-                    // Fecha a janela logo após concluir a edição
                     stage.close();
                 } else {
-                    // MODO INSERÇÃO: Executa o comando INSERT no SQLite
+                    // MODO INSERÇÃO
                     jogoRepository.salvar(jogoObj);
 
                     Alert alertaSucesso = new Alert(Alert.AlertType.INFORMATION);
@@ -206,15 +238,36 @@ public class TelaJogo {
                     alertaSucesso.setContentText("O jogo '" + titulo + "' foi salvo com sucesso!");
                     alertaSucesso.showAndWait();
 
-                    // Limpeza padrão apenas para novos cadastros sequenciais
-                    txtTitulo.clear();
-                    cbPlataforma.setValue(null);
-                    cbCategoria.setValue(null);
-                    cbEstudio.setValue(null);
-                    txtPreco.clear();
-                    dpLancamento.setValue(null);
-                    cbFinalizado.setSelected(false);
-                    txtTitulo.requestFocus();
+                    ButtonType btnSimNovo = new ButtonType("Sim", ButtonBar.ButtonData.YES);
+                    ButtonType btnNaoNovo = new ButtonType("Não", ButtonBar.ButtonData.NO);
+
+                    Alert perguntaNovoCadastro = new Alert(Alert.AlertType.CONFIRMATION);
+                    perguntaNovoCadastro.setTitle("Continuar Cadastrando?");
+                    perguntaNovoCadastro.setHeaderText(null);
+                    perguntaNovoCadastro.setContentText("Deseja cadastrar um novo jogo?");
+                    perguntaNovoCadastro.getButtonTypes().setAll(btnSimNovo, btnNaoNovo);
+
+                    Stage novoStage = (Stage) perguntaNovoCadastro.getDialogPane().getScene().getWindow();
+                    try {
+                        novoStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagens/omega.png")));
+                    } catch (Exception ex) {
+                        System.err.println("Não foi possível carregar o ícone.");
+                    }
+
+                    java.util.Optional<ButtonType> respostaNova = perguntaNovoCadastro.showAndWait();
+
+                    if (respostaNova.isPresent() && respostaNova.get() == btnSimNovo) {
+                        txtTitulo.clear();
+                        cbPlataforma.setValue(null);
+                        cbCategoria.setValue(null);
+                        cbEstudio.setValue(null);
+                        txtPreco.clear();
+                        dpLancamento.setValue(null);
+                        cbFinalizado.setSelected(false);
+                        txtTitulo.requestFocus();
+                    } else {
+                        stage.close();
+                    }
                 }
 
             } catch (Exception ex) {
@@ -227,7 +280,6 @@ public class TelaJogo {
             }
         });
 
-        // AÇÃO DO BOTÃO CANCELAR
         btnCancelar.setOnAction(e -> stage.close());
 
         painelBotoes.getChildren().addAll(btnSalvar, btnCancelar);
@@ -236,10 +288,12 @@ public class TelaJogo {
         Scene cena = new Scene(raiz, 600, 550);
         stage.setScene(cena);
 
+        // --- CARREGA O ÍCONE DA JANELA PRINCIPAL DE ACORDO COM O MODO ---
         try {
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagens/omega.png")));
+            String iconeJanela = (jogoEmEdicao != null) ? "/imagens/editar.png" : "/imagens/cadastro.png";
+            stage.getIcons().add(new Image(getClass().getResourceAsStream(iconeJanela)));
         } catch (Exception ex) {
-            System.err.println("Erro ao carregar ícone da aplicação");
+            System.err.println("Erro ao carregar ícone adaptativo da janela");
         }
 
         stage.setTitle(jogoEmEdicao != null ? "Editar Jogo" : "Cadastro de Jogo");
@@ -247,12 +301,10 @@ public class TelaJogo {
         stage.showAndWait();
     }
 
-    // Metodo chamado pelo PainelJogos para sinalizar que a tela deve abrir carregando dados existentes
     public void configurarModoEdicao(Jogo jogo) {
         this.jogoEmEdicao = jogo;
     }
 
-    // Preenche os componentes visuais do formulário com os dados vindos da tabela
     private void preencherCamposFormulario(Jogo jogo) {
         txtId.setText(String.valueOf(jogo.getId()));
         txtTitulo.setText(jogo.getTitulo());
@@ -271,13 +323,14 @@ public class TelaJogo {
         painelTitulo.setStyle("-fx-background-color: #0d3b3f;");
 
         try {
-            Image image = new Image(getClass().getResourceAsStream("/imagens/cadastro.png"));
+            String iconeCabecalho = (jogoEmEdicao != null) ? "/imagens/editar.png" : "/imagens/cadastro.png";
+            Image image = new Image(getClass().getResourceAsStream(iconeCabecalho));
             ImageView imageView = new ImageView(image);
             imageView.setFitHeight(30);
             imageView.setFitWidth(30);
             painelTitulo.getChildren().add(imageView);
         } catch (Exception e) {
-            System.err.println("Erro ao carregar ícone do título");
+            System.err.println("Erro ao carregar ícone do título do cabeçalho");
         }
 
         Label lbTitulo = new Label(jogoEmEdicao != null ? "Editar Jogo Selecionado" : "Cadastro de Jogo");
@@ -298,7 +351,10 @@ public class TelaJogo {
         } catch (Exception e) {
             btn.setText("Ação");
         }
-        btn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+        btn.setStyle("-fx-background-color: transparent; " +
+                "-fx-border-color: transparent; " +
+                "-fx-padding: 0; " +
+                "-fx-cursor: hand;");
         return btn;
     }
 }

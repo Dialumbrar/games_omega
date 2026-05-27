@@ -65,10 +65,12 @@ public class PainelJogos {
         tabelaJogos.setItems(repository.getJogos());
 
         // Botões
-        HBox painelBotoes = new HBox(10);
+        HBox painelBotoes = new HBox();
+        painelBotoes.setSpacing(15);
         Button btnAdicionar = criarBotao("Adicionar", "/imagens/adicionar.png");
         Button btnExcluir = criarBotao("Excluir", "/imagens/excluir.png");
         Button btnEditar = criarBotao("Editar", "/imagens/editar.png");
+        Button btnPesquisar = criarBotao("Pesquisar", "/imagens/pesquisar.png");
         Button btnLixeira = criarBotao("Lixeira", "/imagens/lixeira.png");
 
         // --- LÓGICA PARA ABRIR A TELA DE ADICIONAR ---
@@ -83,7 +85,7 @@ public class PainelJogos {
             tabelaJogos.setItems(repository.getJogos());
         });
 
-        // --- LÓGICA PARA O BOTÃO EXCLUIR COM CONFIGURAÇÃO "SIM" OU "NÃO" ---
+        // --- LÓGICA PARA O BOTÃO EXCLUIR ---
         btnExcluir.setOnAction(event -> {
             // 1. Pega o jogo selecionado na tabela
             Jogo jogoSelecionado = tabelaJogos.getSelectionModel().getSelectedItem();
@@ -102,22 +104,40 @@ public class PainelJogos {
             ButtonType btnSim = new ButtonType("Sim", ButtonBar.ButtonData.YES);
             ButtonType btnNao = new ButtonType("Não", ButtonBar.ButtonData.NO);
 
-            // 4. Caixa de confirmação personalizada
+            // 4. Caixa de confirmação de segurança
             Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
             confirmacao.setTitle("Confirmar Exclusão");
             confirmacao.setHeaderText(null);
             confirmacao.setContentText("Tem certeza que deseja excluir o jogo '" + jogoSelecionado.getTitulo() + "'?");
 
-            // Altera os botões padrão da caixa para os nossos botões customizados
+            // Configura os botões customizados ANTES de mostrar a tela
             confirmacao.getButtonTypes().setAll(btnSim, btnNao);
 
-            // Mostra o alerta e espera a resposta do utilizador
+            // ALTERA O ÍCONE DA JANELA DO ALERTA
+            Stage alertStage = (Stage) confirmacao.getDialogPane().getScene().getWindow();
+            try {
+                alertStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagens/excluir.png")));
+            } catch (Exception ex) {
+                System.err.println("Não foi possível carregar o ícone do alerta.");
+            }
+
+            // ALTERA O ÍCONE INTERNO GRANDE (Substitui o ponto de interrogação '?' pelo ícone de excluir)
+            try {
+                ImageView imagemCustomizada = new ImageView(new Image(getClass().getResourceAsStream("/imagens/lixeira.png")));
+                imagemCustomizada.setFitWidth(30);
+                imagemCustomizada.setFitHeight(30);
+                confirmacao.setGraphic(imagemCustomizada);
+            } catch (Exception e) {
+                System.err.println("Não foi possível carregar o ícone interno do alerta.");
+            }
+
+            // 5. MOSTRA A TELA APENAS UMA VEZ E GUARDA A RESPOSTA
             java.util.Optional<ButtonType> resposta = confirmacao.showAndWait();
 
-            // 5. Se o utilizador clicou em "Sim", deleta e atualiza a View
+            // 6. Se confirmado, deleta e atualiza a View
             if (resposta.isPresent() && resposta.get() == btnSim) {
                 repository.excluir(jogoSelecionado.getId());
-                tabelaJogos.setItems(repository.getJogos()); // Atualiza a tabela com os dados do SQLite
+                tabelaJogos.setItems(repository.getJogos());
             }
         });
 
@@ -149,8 +169,15 @@ public class PainelJogos {
             tabelaJogos.setItems(repository.getJogos());
         });
 
+        // Tela Lixeira
+        btnLixeira.setOnAction(event -> {
+            TelaLixeira telaLixeira = new TelaLixeira();
+            // Abre a janela passando a tela principal como parente
+            telaLixeira.mostrarTela((Stage) painelJogos.getScene().getWindow());
+        });
+
         // Organização dos elementos no layout
-        painelBotoes.getChildren().addAll(btnAdicionar, btnExcluir, btnEditar, btnLixeira);
+        painelBotoes.getChildren().addAll(btnAdicionar, btnExcluir, btnEditar, btnPesquisar, btnLixeira);
         painelJogos.getChildren().addAll(lbTitulo, linha, painelBotoes, tabelaJogos);
 
         return painelJogos;
@@ -167,7 +194,7 @@ public class PainelJogos {
         } catch (Exception e) {
             System.out.println("Erro ao carregar ícone: " + urlImagem);
         }
-        btn.setStyle("-fx-cursor: hand;");
+        btn.setStyle("-fx-cursor: hand; -fx-background-color: #e1e1e1; -fx-font-weight: bold;");
         return btn;
     }
 }

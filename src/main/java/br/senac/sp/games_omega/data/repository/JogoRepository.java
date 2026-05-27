@@ -141,21 +141,78 @@ public class JogoRepository {
         }
     }
 
-    // Metodo para deletar um jogo do banco pelo ID
+
+    // 5. Metodo para deletar um jogo do banco pelo ID
     public void excluir(int id) {
-        String sql = "DELETE FROM games WHERE id = ?";
+        // 1. Query para copiar os dados para a lixeira antes de deletar
+        String sqlCopiar = "INSERT INTO games_lixeira (id, titulo, plataforma, categoria, estudio, preco, data_lancamento, finalizado, data_exclusao) "
+                + "SELECT g.id, g.titulo, p.nome, c.nome, e.nome, g.preco, g.data_lancamento, g.finalizado, datetime('now', 'localtime') "
+                + "FROM games g "
+                + "INNER JOIN plataformas p ON g.id_plataforma = p.id "
+                + "INNER JOIN categorias c ON g.id_categoria = c.id "
+                + "INNER JOIN estudios e ON g.id_estudio = e.id "
+                + "WHERE g.id = ?";
 
-        // O try abre a conexão e o statement, garantindo que ambos sejam fechados depois
-        try (Connection conn = ConexaoSQLite.getConexao();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        // 2. Query de exclusão real
+        String sqlDeletar = "DELETE FROM games WHERE id = ?";
 
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-            System.out.println("Jogo com ID " + id + " excluído com sucesso!");
+        try (Connection conn = ConexaoSQLite.getConexao()) {
+            conn.setAutoCommit(false); // Transação segura para garantir as duas operações
 
+            try (PreparedStatement stmtCopiar = conn.prepareStatement(sqlCopiar);
+                 PreparedStatement stmtDeletar = conn.prepareStatement(sqlDeletar)) {
+
+                // Executa a cópia
+                stmtCopiar.setInt(1, id);
+                stmtCopiar.executeUpdate();
+
+                // Executa a exclusão
+                stmtDeletar.setInt(1, id);
+                stmtDeletar.executeUpdate();
+
+                conn.commit(); // Salva as alterações
+                System.out.println("Jogo movido para o histórico da lixeira com sucesso!");
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (SQLException e) {
-            System.err.println("Erro ao excluir o jogo do banco de dados:");
-            e.printStackTrace();
+            System.err.println("Erro ao mover jogo para a lixeira: " + e.getMessage());
         }
+    }
+
+    // 6. METODO PARA LIXEIRA
+    public ObservableList<Jogo> getJogosExcluidos() {
+        ObservableList<Jogo> listaExcluidos = FXCollections.observableArrayList();
+
+        // O SELECT deve trazer TODOS os campos necessários para preencher o objeto Jogo
+        String sql = "SELECT id, titulo, plataforma, categoria, estudio, preco, data_lancamento, finalizado FROM games_lixeira";
+
+        try (Connection conn = ConexaoSQLite.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String dataStr = rs.getString("data_lancamento");
+                LocalDate dataLancamento = (dataStr != null) ? LocalDate.parse(dataStr) : null;
+                boolean finalizado = rs.getInt("finalizado") == 1;
+
+                // Cria o objeto completo com todas as variáveis
+                Jogo jogo = new Jogo(
+                        rs.getInt("id"),
+                        rs.getString("titulo"),
+                        rs.getString("plataforma"),
+                        rs.getString("categoria"),
+                        rs.getString("estudio"),
+                        rs.getDouble("preco"),
+                        dataLancamento,
+                        finalizado
+                );
+                listaExcluidos.add(jogo);
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao listar histórico da lixeira: " + e.getMessage());
+        }
+        return listaExcluidos;
     }
 }

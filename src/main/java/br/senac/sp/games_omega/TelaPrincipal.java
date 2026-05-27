@@ -2,6 +2,7 @@ package br.senac.sp.games_omega;
 
 import br.senac.sp.games_omega.ui.home.PainelHome;
 import br.senac.sp.games_omega.ui.jogos.PainelJogos;
+import br.senac.sp.games_omega.ui.jogos.PainelPlataforma; // IMPORTAÇÃO DA NOVA CLASSE ADICIONADA
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -45,19 +46,25 @@ public class TelaPrincipal extends Application {
         Button btnPlataformas = criarBotaoMenu("Plataforma");
         Button btnEstudios = criarBotaoMenu("Estúdios");
 
-        // Acionado os botões
-        btnJogos.setOnAction(event -> {
-            // Instancia sua nova classe de painel
-            PainelJogos painelJogos = new PainelJogos();
+        // --- AÇÕES DOS BOTÕES (EVENTOS DE CLIQUE) ---
 
-            // Troca o conteúdo central da tela pelo novo painel
+        btnHome.setOnAction(event -> {
+            PainelHome painelHome = new PainelHome();
+            raiz.setCenter(painelHome.criarPainelHome());
+        });
+
+        btnJogos.setOnAction(event -> {
+            PainelJogos painelJogos = new PainelJogos();
             raiz.setCenter(painelJogos.criarPainelJogos());
         });
 
-        btnHome.setOnAction(event -> {
-            // Para voltar ao início, recarregue o PainelHome
-            PainelHome painelHome = new PainelHome();
-            raiz.setCenter(painelHome.criarPainelHome());
+        // --- BOTÃO PLATAFORMA ---
+        btnPlataformas.setOnAction(event -> {
+            // Instancia a classe de gerenciamento de hardware
+            PainelPlataforma painelPlataforma = new PainelPlataforma();
+
+            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
+            raiz.setCenter(painelPlataforma.criarPainelPlataformas());
         });
 
         // Adicionando elementos ao menu lateral
@@ -89,17 +96,14 @@ public class TelaPrincipal extends Application {
         aplicarEfeitoHover(btnHome, btnJogos, btnPlataformas, btnEstudios);
     }
 
-    // Metodo auxiliar para criar botões padronizados
     private Button criarBotaoMenu(String texto) {
         Button botao = new Button(texto);
         botao.setPrefWidth(Double.MAX_VALUE);
         botao.setPadding(new Insets(10));
-        // Estilo base do botão com cursor de "mãozinha"
         botao.setStyle(COR_PADRAO + "-fx-cursor: hand; -fx-alignment: center;");
         return botao;
     }
 
-    // Metodo para aplicar a troca de cores ao passar o mouse
     private void aplicarEfeitoHover(Button... botoes) {
         for (Button btn : botoes) {
             btn.setOnMouseEntered(event -> btn.setStyle(COR_HOVER + "-fx-cursor: hand;"));
