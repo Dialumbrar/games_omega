@@ -1,7 +1,7 @@
 package br.senac.sp.games_omega.ui.jogos;
 
-import br.senac.sp.games_omega.data.repository.PlataformaRepository;
-import br.senac.sp.games_omega.model.Plataforma;
+import br.senac.sp.games_omega.data.repository.EstudioRepository;
+import br.senac.sp.games_omega.model.Estudio;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -12,68 +12,62 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.time.LocalDate;
+public class PainelEstudio {
 
-public class PainelPlataforma {
+    private final EstudioRepository repository = new EstudioRepository();
 
-    private final PlataformaRepository repository = new PlataformaRepository();
+    public VBox criarPainelEstudios() {
+        VBox painel = new VBox(10);
+        painel.setPadding(new Insets(20));
+        painel.setStyle("-fx-background-color: #2F3336;");
 
-    public VBox criarPainelPlataformas() {
-        VBox painelPlataformas = new VBox();
-        painelPlataformas.setSpacing(10);
-        painelPlataformas.setPadding(new Insets(20));
-        painelPlataformas.setStyle("-fx-background-color: #2F3336;");
-
-        Label lbTitulo = new Label("Gerenciamento de Plataformas");
+        Label lbTitulo = new Label("Gerenciamento de Estúdios");
         lbTitulo.setStyle("-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1563cd;");
 
         Separator linha = new Separator();
 
-        TableView<Plataforma> tabelaPlataformas = new TableView<>();
-        tabelaPlataformas.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        VBox.setVgrow(tabelaPlataformas, Priority.ALWAYS);
+        TableView<Estudio> tabela = new TableView<>();
+        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        VBox.setVgrow(tabela, Priority.ALWAYS);
 
-        TableColumn<Plataforma, Integer> colId = new TableColumn<>("ID");
+        TableColumn<Estudio, Integer> colId = new TableColumn<>("ID");
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colId.setMaxWidth(60);
 
-        TableColumn<Plataforma, String> colNome = new TableColumn<>("Plataforma");
+        TableColumn<Estudio, String> colNome = new TableColumn<>("Nome do Estúdio");
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
 
-        TableColumn<Plataforma, String> colFabricante = new TableColumn<>("Fabricante");
-        colFabricante.setCellValueFactory(new PropertyValueFactory<>("fabricante"));
+        TableColumn<Estudio, String> colFundador = new TableColumn<>("Fundador");
+        colFundador.setCellValueFactory(new PropertyValueFactory<>("fundador"));
 
-        TableColumn<Plataforma, Double> colValor = new TableColumn<>("Preço Hardware");
-        colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
+        TableColumn<Estudio, Integer> colAno = new TableColumn<>("Ano Fundação");
+        colAno.setCellValueFactory(new PropertyValueFactory<>("anoFundacao"));
 
-        TableColumn<Plataforma, LocalDate> colLancamento = new TableColumn<>("Lançamento");
-        colLancamento.setCellValueFactory(new PropertyValueFactory<>("dataLancamento"));
+        TableColumn<Estudio, String> colPais = new TableColumn<>("País de Origem");
+        colPais.setCellValueFactory(new PropertyValueFactory<>("paisOrigem"));
 
-        tabelaPlataformas.getColumns().addAll(colId, colNome, colFabricante, colValor, colLancamento);
-        tabelaPlataformas.setItems(repository.getPlataformas());
+        tabela.getColumns().addAll(colId, colNome, colFundador, colAno, colPais);
+        tabela.setItems(repository.getEstudios());
 
-        // Botões
-        HBox painelBotoes = new HBox();
-        painelBotoes.setSpacing(15);
+        HBox painelBotoes = new HBox(15);
         Button btnAdicionar = criarBotao("Adicionar", "/imagens/adicionar.png");
         Button btnEditar = criarBotao("Editar", "/imagens/editar.png");
         Button btnExcluir = criarBotao("Excluir", "/imagens/excluir.png");
 
-        // AÇÕES DOS BOTÕES
         btnAdicionar.setOnAction(e -> {
-            TelaPlataforma tela = new TelaPlataforma();
-            tela.criarTela((Stage) painelPlataformas.getScene().getWindow());
-            tabelaPlataformas.setItems(repository.getPlataformas());
+            TelaEstudio tela = new TelaEstudio();
+            tela.criarTela((Stage) painel.getScene().getWindow());
+            tabela.setItems(repository.getEstudios());
         });
 
         // --- LÓGICA PARA O BOTÃO EDITAR ---
         btnEditar.setOnAction(e -> {
-            Plataforma selecionada = tabelaPlataformas.getSelectionModel().getSelectedItem();
-            if (selecionada == null) {
+            Estudio selecionado = tabela.getSelectionModel().getSelectedItem();
+            if (selecionado == null) {
                 Alert alerta = new Alert(Alert.AlertType.WARNING);
-                alerta.setTitle("Nenhuma plataforma selecionada");
+                alerta.setTitle("Nenhum estúdio selecionado");
                 alerta.setHeaderText(null);
-                alerta.setContentText("Por favor, selecione uma plataforma na tabela para poder editar!");
+                alerta.setContentText("Por favor, selecione um estúdio na tabela para poder editar!");
 
                 // Configura o logo Omega na barra de título
                 Stage alertStage = (Stage) alerta.getDialogPane().getScene().getWindow();
@@ -96,20 +90,20 @@ public class PainelPlataforma {
                 alerta.showAndWait();
                 return;
             }
-            TelaPlataforma tela = new TelaPlataforma();
-            tela.configurarModoEdicao(selecionada);
-            tela.criarTela((Stage) painelPlataformas.getScene().getWindow());
-            tabelaPlataformas.setItems(repository.getPlataformas());
+            TelaEstudio tela = new TelaEstudio();
+            tela.configurarModoEdicao(selecionado);
+            tela.criarTela((Stage) painel.getScene().getWindow());
+            tabela.setItems(repository.getEstudios());
         });
 
         btnExcluir.setOnAction(e -> {
-            Plataforma selecionada = tabelaPlataformas.getSelectionModel().getSelectedItem();
+            Estudio selecionado = tabela.getSelectionModel().getSelectedItem();
             // 1. Valida se há linha selecionada
-            if (selecionada == null) {
+            if (selecionado == null) {
                 Alert alerta = new Alert(Alert.AlertType.WARNING);
-                alerta.setTitle("Nenhuma plataforma selecionada");
+                alerta.setTitle("Nenhum estúdio selecionado");
                 alerta.setHeaderText(null);
-                alerta.setContentText("Por favor, selecione uma plataforma na tabela para poder excluir!");
+                alerta.setContentText("Por favor, selecione um estúdio na tabela para poder excluir!");
 
                 // 2. Configura o logo da Omega na barra de título
                 Stage alertStage = (Stage) alerta.getDialogPane().getScene().getWindow();
@@ -141,7 +135,7 @@ public class PainelPlataforma {
             Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
             confirmacao.setTitle("Confirmar Exclusão");
             confirmacao.setHeaderText(null);
-            confirmacao.setContentText("Tem certeza que deseja excluir a plataforma '" + selecionada.getNome() + "'?");
+            confirmacao.setContentText("Tem certeza que deseja excluir o estúdio '" + selecionado.getNome() + "'?");
             confirmacao.getButtonTypes().setAll(btnSim, btnNao);
 
             // Altera o ícone da janela do alerta
@@ -165,15 +159,14 @@ public class PainelPlataforma {
             // Exibe e captura a resposta do usuário
             java.util.Optional<ButtonType> resposta = confirmacao.showAndWait();
             if (resposta.isPresent() && resposta.get() == btnSim) {
-                repository.excluir(selecionada.getId());
-                tabelaPlataformas.setItems(repository.getPlataformas());
+                repository.excluir(selecionado.getId());
+                tabela.setItems(repository.getEstudios());
             }
         });
 
         painelBotoes.getChildren().addAll(btnAdicionar, btnEditar, btnExcluir);
-        painelPlataformas.getChildren().addAll(lbTitulo, linha, painelBotoes, tabelaPlataformas);
-
-        return painelPlataformas;
+        painel.getChildren().addAll(lbTitulo, linha, painelBotoes, tabela);
+        return painel;
     }
 
     private Button criarBotao(String texto, String urlImagem) {

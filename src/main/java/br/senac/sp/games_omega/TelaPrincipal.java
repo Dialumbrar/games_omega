@@ -1,6 +1,7 @@
 package br.senac.sp.games_omega;
 
 import br.senac.sp.games_omega.ui.home.PainelHome;
+import br.senac.sp.games_omega.ui.jogos.PainelEstudio;
 import br.senac.sp.games_omega.ui.jogos.PainelJogos;
 import br.senac.sp.games_omega.ui.jogos.PainelPlataforma; // IMPORTAÇÃO DA NOVA CLASSE ADICIONADA
 import javafx.application.Application;
@@ -48,13 +49,19 @@ public class TelaPrincipal extends Application {
 
         // --- AÇÕES DOS BOTÕES (EVENTOS DE CLIQUE) ---
 
+        // --- BOTÃO HOME ---
         btnHome.setOnAction(event -> {
             PainelHome painelHome = new PainelHome();
+
+            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
             raiz.setCenter(painelHome.criarPainelHome());
         });
 
+        // --- BOTÃO JOGO ---
         btnJogos.setOnAction(event -> {
             PainelJogos painelJogos = new PainelJogos();
+
+            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
             raiz.setCenter(painelJogos.criarPainelJogos());
         });
 
@@ -65,6 +72,14 @@ public class TelaPrincipal extends Application {
 
             // Renderiza e joga o novo painel cinza com a tabela no centro da tela
             raiz.setCenter(painelPlataforma.criarPainelPlataformas());
+        });
+
+        // --- BOTÃO ESTUDIO ---
+        btnEstudios.setOnAction(event -> {
+            PainelEstudio painelEstudio = new PainelEstudio();
+
+            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
+            raiz.setCenter(painelEstudio.criarPainelEstudios());
         });
 
         // Adicionando elementos ao menu lateral

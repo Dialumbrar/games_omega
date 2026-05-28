@@ -96,6 +96,25 @@ public class PainelJogos {
                 alerta.setTitle("Nenhum jogo selecionado");
                 alerta.setHeaderText(null);
                 alerta.setContentText("Por favor, selecione um jogo na tabela para poder excluir!");
+
+                // Configura o logo da Omega na barra de título do Alerta
+                Stage alertStage = (Stage) alerta.getDialogPane().getScene().getWindow();
+                try {
+                    alertStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagens/omega.png")));
+                } catch (Exception ex) {
+                    System.err.println("Erro ao carregar o ícone da barra de título.");
+                }
+
+                // Configura o ícone interno
+                try {
+                    ImageView imagemCustomizada = new ImageView(new Image(getClass().getResourceAsStream("/imagens/atenção.png")));
+                    imagemCustomizada.setFitWidth(35);
+                    imagemCustomizada.setFitHeight(35);
+                    alerta.setGraphic(imagemCustomizada);
+                } catch (Exception e) {
+                    System.err.println("Erro ao carregar o ícone interno de atenção.");
+                }
+
                 alerta.showAndWait();
                 return;
             }
@@ -143,15 +162,33 @@ public class PainelJogos {
 
         // --- LÓGICA PARA O BOTÃO EDITAR ---
         btnEditar.setOnAction(event -> {
-            // 1. Pega o jogo selecionado na tabela
             Jogo jogoSelecionado = tabelaJogos.getSelectionModel().getSelectedItem();
 
-            // 2. Valida se o utilizador selecionou uma linha
+            // Valida se o utilizador selecionou uma linha com a nova identidade visual
             if (jogoSelecionado == null) {
                 Alert alerta = new Alert(Alert.AlertType.WARNING);
                 alerta.setTitle("Nenhum jogo selecionado");
                 alerta.setHeaderText(null);
                 alerta.setContentText("Por favor, selecione um jogo na tabela para poder editar!");
+
+                // Configura o logo Omega na barra de título do Alerta
+                Stage alertStage = (Stage) alerta.getDialogPane().getScene().getWindow();
+                try {
+                    alertStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagens/omega.png")));
+                } catch (Exception ex) {
+                    System.err.println("Erro ao carregar o ícone da barra de título.");
+                }
+
+                // Substitui o triângulo padrão pelo seu ícone customizado
+                try {
+                    ImageView imagemCustomizada = new ImageView(new Image(getClass().getResourceAsStream("/imagens/atenção.png")));
+                    imagemCustomizada.setFitWidth(35);
+                    imagemCustomizada.setFitHeight(35);
+                    alerta.setGraphic(imagemCustomizada);
+                } catch (Exception e) {
+                    System.err.println("Erro ao carregar o ícone interno de atenção.");
+                }
+
                 alerta.showAndWait();
                 return;
             }
