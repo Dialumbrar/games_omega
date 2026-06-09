@@ -84,7 +84,7 @@ public class JogoRepository {
             stmt.setInt(7, jogo.isFinalizado() ? 1 : 0);
 
             stmt.executeUpdate();
-            System.out.println("Jogo '" + jogo.getTitulo() + "' salvo com sucesso no SQLite!");
+            System.out.println("Jogo '" + jogo.getTitulo() + "' saved successfully to SQLite!");
 
         } catch (SQLException e) {
             System.err.println("Erro ao salvar o jogo no banco de dados:");
@@ -105,7 +105,7 @@ public class JogoRepository {
                 }
             }
         }
-        // Se por acaso digitar um nome que não existe nas tabelas, retorna 1 por segurança (ou lance uma exceção)
+        // Se por acaso digitar um nome que não existe nas tabelas, retorna 1 por segurança
         return 1;
     }
 
@@ -141,10 +141,9 @@ public class JogoRepository {
         }
     }
 
-
-    // 5. Metodo para deletar um jogo do banco pelo ID
+    // 5. METODO PARA DELETAR UM JOGO DO BANCO PELO ID (MOVE PARA LIXEIRA)
     public void excluir(int id) {
-        // 1. Query para copiar os dados para a lixeira antes de deletar
+        // Query para copiar os dados para a lixeira antes de deletar
         String sqlCopiar = "INSERT INTO games_lixeira (id, titulo, plataforma, categoria, estudio, preco, data_lancamento, finalizado, data_exclusao) "
                 + "SELECT g.id, g.titulo, p.nome, c.nome, e.nome, g.preco, g.data_lancamento, g.finalizado, datetime('now', 'localtime') "
                 + "FROM games g "
@@ -153,7 +152,7 @@ public class JogoRepository {
                 + "INNER JOIN estudios e ON g.id_estudio = e.id "
                 + "WHERE g.id = ?";
 
-        // 2. Query de exclusão real
+        // Query de exclusão real
         String sqlDeletar = "DELETE FROM games WHERE id = ?";
 
         try (Connection conn = ConexaoSQLite.getConexao()) {
@@ -181,11 +180,10 @@ public class JogoRepository {
         }
     }
 
-    // 6. METODO PARA LIXEIRA
+    // 6. METODO PARA BUSCAR JOGOS EXCLUÍDOS (LISTAR LIXEIRA)
     public ObservableList<Jogo> getJogosExcluidos() {
         ObservableList<Jogo> listaExcluidos = FXCollections.observableArrayList();
 
-        // O SELECT deve trazer TODOS os campos necessários para preencher o objeto Jogo
         String sql = "SELECT id, titulo, plataforma, categoria, estudio, preco, data_lancamento, finalizado FROM games_lixeira";
 
         try (Connection conn = ConexaoSQLite.getConexao();
@@ -197,7 +195,6 @@ public class JogoRepository {
                 LocalDate dataLancamento = (dataStr != null) ? LocalDate.parse(dataStr) : null;
                 boolean finalizado = rs.getInt("finalizado") == 1;
 
-                // Cria o objeto completo com todas as variáveis
                 Jogo jogo = new Jogo(
                         rs.getInt("id"),
                         rs.getString("titulo"),
@@ -214,5 +211,78 @@ public class JogoRepository {
             System.err.println("Erro ao listar histórico da lixeira: " + e.getMessage());
         }
         return listaExcluidos;
+    }
+
+    // 7. METODO PARA RESTAURAR UM JOGO DA LIXEIRA (PROCESSO INVERSO DA EXCLUSÃO)
+    public void restaurar(int id) {
+        String sqlBuscarLixeira = "SELECT titulo, plataforma, categoria, estudio, preco, data_lancamento, finalizado " +
+                "FROM games_lixeira WHERE id = ?";
+
+        String sqlInserirPrincipal = "INSERT INTO games (id, titulo, id_plataforma, id_categoria, id_estudio, preco, data_lancamento, finalizado) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        String sqlDeletarLixeira = "DELETE FROM games_lixeira WHERE id = ?";
+
+        try (Connection conn = ConexaoSQLite.getConexao()) {
+            conn.setAutoCommit(false); // Transação segura em lote
+
+            try (PreparedStatement stmtBuscar = conn.prepareStatement(sqlBuscarLixeira);
+                 PreparedStatement stmtInserir = conn.prepareStatement(sqlInserirPrincipal);
+                 PreparedStatement stmtDeletar = conn.prepareStatement(sqlDeletarLixeira)) {
+
+                // 1. EXECUTA A BUSCA DOS DADOS NA LIXEIRA DA FORMA CORRETA
+                stmtBuscar.setInt(1, id);
+
+                // Primeiro executamos a query para abrir o ResultSet (rs)
+                try (ResultSet rs = stmtBuscar.executeQuery()) {
+
+                    // Agora sim usamos o .next() no ResultSet para validar se achou o jogo
+                    if (rs.next()) {
+                        String titulo = rs.getString("titulo");
+                        String nomePlat = rs.getString("plataforma");
+                        String nomeCat = rs.getString("categoria");
+                        String nomeEst = rs.getString("estudio");
+                        double preco = rs.getDouble("preco");
+                        String dataStr = rs.getString("data_lancamento");
+                        int finalizado = rs.getInt("finalizado");
+
+                        // 2. CONVERTE OS TEXTOS DE VOLTA PARA OS IDS ESTRANGEIROS
+                        int idPlataforma = buscarIdPorNome(conn, "plataformas", nomePlat);
+                        int idCategoria = buscarIdPorNome(conn, "categorias", nomeCat);
+                        int idEstudio = buscarIdPorNome(conn, "estudios", nomeEst);
+
+                        // 3. INSERE DE VOLTA NA TABELA PRINCIPAL (MANTENDO O ID ORIGINAL)
+                        stmtInserir.setInt(1, id);
+                        stmtInserir.setString(2, titulo);
+                        stmtInserir.setInt(3, idPlataforma);
+                        stmtInserir.setInt(4, idCategoria);
+                        stmtInserir.setInt(5, idEstudio);
+                        stmtInserir.setDouble(6, preco);
+                        stmtInserir.setString(7, dataStr);
+                        stmtInserir.setInt(8, finalizado);
+                        stmtInserir.executeUpdate();
+
+                        // 4. REMOVE O ITEM DA LIXEIRA
+                        stmtDeletar.setInt(1, id);
+                        stmtDeletar.executeUpdate();
+
+                        // Confirma a transação com sucesso
+                        conn.commit();
+                        System.out.println("Jogo '" + titulo + "' restaurado com sucesso para a lista principal!");
+                    } else {
+                        System.err.println("Aviso: Jogo com ID " + id + " não foi encontrado na lixeira.");
+                        conn.rollback();
+                    }
+                }
+
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Erro crítico ao restaurar o jogo da lixeira: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

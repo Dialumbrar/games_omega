@@ -3,7 +3,7 @@ package br.senac.sp.games_omega;
 import br.senac.sp.games_omega.ui.home.PainelHome;
 import br.senac.sp.games_omega.ui.jogos.PainelEstudio;
 import br.senac.sp.games_omega.ui.jogos.PainelJogos;
-import br.senac.sp.games_omega.ui.jogos.PainelPlataforma; // IMPORTAÇÃO DA NOVA CLASSE ADICIONADA
+import br.senac.sp.games_omega.ui.jogos.PainelPlataforma;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,72 +17,63 @@ import javafx.stage.Stage;
 
 public class TelaPrincipal extends Application {
 
-    // Constantes de estilo para manter o padrão visual
-    private static final String COR_PADRAO = "-fx-background-color: transparent; -fx-text-fill: #ffffff;";
-    private static final String COR_HOVER = "-fx-background-color: #ffffff; -fx-text-fill: #1563cd;";
+    // 1. CONSTANTES DE ESTILO ATUALIZADAS (TEMA ESCURO PREMIUM)
+    private static final String COR_PADRAO = "-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-font-weight: bold;";
+    private static final String COR_HOVER = "-fx-background-color: #252830; -fx-text-fill: #E5A93C; -fx-font-weight: bold;";
 
     @Override
     public void start(Stage stage) throws Exception {
 
         BorderPane raiz = new BorderPane();
 
-        // Configuração da barra lateral azul
+        // 2. CONFIGURAÇÃO DA BARRA LATERAL (CINZA BEM ESCURO - ESTILO STEAM)
         VBox painelLateral = new VBox();
         painelLateral.setSpacing(10);
         painelLateral.setPrefWidth(150);
-        painelLateral.setStyle("-fx-background-color:#1563cd");
+        painelLateral.setStyle("-fx-background-color: #1E222B;"); // Substituído o azul vibrante por cinza profundo
         painelLateral.setPadding(new Insets(15));
         painelLateral.setAlignment(Pos.TOP_CENTER);
 
-        // --- ÍCONE OMEGA NA BARRA LATERAL ---
+        // 3. ÍCONE OMEGA NA BARRA LATERAL
         Image imgOmega = new Image(getClass().getResourceAsStream("/imagens/omega.png"));
         ImageView ivOmega = new ImageView(imgOmega);
         ivOmega.setFitWidth(80);
         ivOmega.setPreserveRatio(true);
-        VBox.setMargin(ivOmega, new Insets(0, 0, 20, 0)); // Espaço abaixo do ícone
+        VBox.setMargin(ivOmega, new Insets(0, 0, 20, 0));
 
-        // Criação dos botões usando o metodo auxiliar
+        // 4. CRIAÇÃO DOS BOTÕES DO MENU
         Button btnHome = criarBotaoMenu("Home");
         Button btnJogos = criarBotaoMenu("Jogos");
         Button btnPlataformas = criarBotaoMenu("Plataforma");
         Button btnEstudios = criarBotaoMenu("Estúdios");
 
-        // --- AÇÕES DOS BOTÕES (EVENTOS DE CLIQUE) ---
+        // 5. EVENTOS DE CLIQUE (NAVEGAÇÃO DO BORDERPANE)
 
-        // --- BOTÃO HOME ---
+        // Botão Home
         btnHome.setOnAction(event -> {
             PainelHome painelHome = new PainelHome();
-
-            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
             raiz.setCenter(painelHome.criarPainelHome());
         });
 
-        // --- BOTÃO JOGO ---
+        // Botão Jogos
         btnJogos.setOnAction(event -> {
             PainelJogos painelJogos = new PainelJogos();
-
-            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
             raiz.setCenter(painelJogos.criarPainelJogos());
         });
 
-        // --- BOTÃO PLATAFORMA ---
+        // Botão Plataforma
         btnPlataformas.setOnAction(event -> {
-            // Instancia a classe de gerenciamento de hardware
             PainelPlataforma painelPlataforma = new PainelPlataforma();
-
-            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
             raiz.setCenter(painelPlataforma.criarPainelPlataformas());
         });
 
-        // --- BOTÃO ESTUDIO ---
+        // Botão Estúdios
         btnEstudios.setOnAction(event -> {
             PainelEstudio painelEstudio = new PainelEstudio();
-
-            // Renderiza e joga o novo painel cinza com a tabela no centro da tela
             raiz.setCenter(painelEstudio.criarPainelEstudios());
         });
 
-        // Adicionando elementos ao menu lateral
+        // 6. MONTAGEM DA BARRA LATERAL E DA VIEW INICIAL
         painelLateral.getChildren().addAll(
                 ivOmega,
                 btnHome,
@@ -93,36 +84,35 @@ public class TelaPrincipal extends Application {
 
         raiz.setLeft(painelLateral);
 
-        // Define o conteúdo inicial da tela (Home)
+        // Define a Home como conteúdo inicial padrão
         PainelHome painelHome = new PainelHome();
         raiz.setCenter(painelHome.criarPainelHome());
 
-        // Configurações da Janela Principal
-        Scene cena = new Scene(raiz, 900, 600);
+        // 7. CONFIGURAÇÕES FINAIS DA JANELA DO SISTEMA
+        Scene cena = new Scene(raiz, 950, 650); // Largura levemente aumentada para acomodar melhor os componentes
 
-        // Ícone da barra de título (janela)
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagens/omega.png")));
-
         stage.setScene(cena);
         stage.setTitle("Games Omega");
         stage.show();
 
-        // Ativa os efeitos visuais de seleção (Hover)
+        // Ativa os novos efeitos visuais de seleção (Hover)
         aplicarEfeitoHover(btnHome, btnJogos, btnPlataformas, btnEstudios);
     }
 
+    // 8. MÉTODOS AUXILIARES DE CONSTRUÇÃO VISUAL (BOTOES E INTERAÇÃO)
     private Button criarBotaoMenu(String texto) {
         Button botao = new Button(texto);
         botao.setPrefWidth(Double.MAX_VALUE);
         botao.setPadding(new Insets(10));
-        botao.setStyle(COR_PADRAO + "-fx-cursor: hand; -fx-alignment: center;");
+        botao.setStyle(COR_PADRAO + " -fx-cursor: hand; -fx-alignment: center;");
         return botao;
     }
 
     private void aplicarEfeitoHover(Button... botoes) {
         for (Button btn : botoes) {
-            btn.setOnMouseEntered(event -> btn.setStyle(COR_HOVER + "-fx-cursor: hand;"));
-            btn.setOnMouseExited(event -> btn.setStyle(COR_PADRAO + "-fx-cursor: hand;"));
+            btn.setOnMouseEntered(event -> btn.setStyle(COR_HOVER + " -fx-cursor: hand;"));
+            btn.setOnMouseExited(event -> btn.setStyle(COR_PADRAO + " -fx-cursor: hand;"));
         }
     }
 }

@@ -19,10 +19,10 @@ public class PainelEstudio {
     public VBox criarPainelEstudios() {
         VBox painel = new VBox(10);
         painel.setPadding(new Insets(20));
-        painel.setStyle("-fx-background-color: #2F3336;");
+        painel.setStyle("-fx-background-color: #252830;");
 
         Label lbTitulo = new Label("Gerenciamento de Estúdios");
-        lbTitulo.setStyle("-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1563cd;");
+        lbTitulo.setStyle("-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
 
         Separator linha = new Separator();
 
@@ -180,7 +180,25 @@ public class PainelEstudio {
         } catch (Exception e) {
             System.out.println("Erro ao carregar ícone: " + urlImagem);
         }
-        btn.setStyle("-fx-cursor: hand; -fx-background-color: #e1e1e1; -fx-font-weight: bold;");
+
+        // Configuração inicial do botão (Modo Escuro Flat)
+        btn.setStyle(
+                "-fx-cursor: hand; " +
+                        "-fx-background-color: #333742; " +
+                        "-fx-text-fill: #FFFFFF; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 5; " +
+                        "-fx-padding: 6 12 6 12;"
+        );
+
+        // Dinâmica de Hover (Efeito ao passar e retirar o ponteiro do mouse)
+        btn.setOnMouseEntered(e -> btn.setStyle(
+                "-fx-cursor: hand; -fx-background-color: #434857; -fx-text-fill: #E5A93C; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 6 12 6 12;"
+        ));
+        btn.setOnMouseExited(e -> btn.setStyle(
+                "-fx-cursor: hand; -fx-background-color: #333742; -fx-text-fill: #FFFFFF; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 6 12 6 12;"
+        ));
+
         return btn;
     }
 }

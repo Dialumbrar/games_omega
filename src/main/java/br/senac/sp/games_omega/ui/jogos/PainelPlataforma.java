@@ -22,10 +22,10 @@ public class PainelPlataforma {
         VBox painelPlataformas = new VBox();
         painelPlataformas.setSpacing(10);
         painelPlataformas.setPadding(new Insets(20));
-        painelPlataformas.setStyle("-fx-background-color: #2F3336;");
+        painelPlataformas.setStyle("-fx-background-color: #252830;");
 
         Label lbTitulo = new Label("Gerenciamento de Plataformas");
-        lbTitulo.setStyle("-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1563cd;");
+        lbTitulo.setStyle("-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
 
         Separator linha = new Separator();
 
@@ -175,7 +175,7 @@ public class PainelPlataforma {
 
         return painelPlataformas;
     }
-
+    // AUXILIAR DE CRIAÇÃO DE BOTÃO (ESTILO PRESET: FLAT MODERNO COM HOVER)
     private Button criarBotao(String texto, String urlImagem) {
         Button btn = new Button(texto);
         try {
@@ -187,7 +187,25 @@ public class PainelPlataforma {
         } catch (Exception e) {
             System.out.println("Erro ao carregar ícone: " + urlImagem);
         }
-        btn.setStyle("-fx-cursor: hand; -fx-background-color: #e1e1e1; -fx-font-weight: bold;");
+
+        // Configuração inicial do botão (Modo Escuro Flat)
+        btn.setStyle(
+                "-fx-cursor: hand; " +
+                        "-fx-background-color: #333742; " +
+                        "-fx-text-fill: #FFFFFF; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 5; " +
+                        "-fx-padding: 6 12 6 12;"
+        );
+
+        // Dinâmica de Hover (Efeito ao passar e retirar o ponteiro do mouse)
+        btn.setOnMouseEntered(e -> btn.setStyle(
+                "-fx-cursor: hand; -fx-background-color: #434857; -fx-text-fill: #E5A93C; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 6 12 6 12;"
+        ));
+        btn.setOnMouseExited(e -> btn.setStyle(
+                "-fx-cursor: hand; -fx-background-color: #333742; -fx-text-fill: #FFFFFF; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 6 12 6 12;"
+        ));
+
         return btn;
     }
 }
