@@ -4,9 +4,11 @@ import br.senac.sp.games_omega.ui.home.PainelHome;
 import br.senac.sp.games_omega.ui.jogos.PainelEstudio;
 import br.senac.sp.games_omega.ui.jogos.PainelJogos;
 import br.senac.sp.games_omega.ui.jogos.PainelPlataforma;
+import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -14,6 +16,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class TelaPrincipal extends Application {
 
@@ -30,7 +33,7 @@ public class TelaPrincipal extends Application {
         VBox painelLateral = new VBox();
         painelLateral.setSpacing(10);
         painelLateral.setPrefWidth(150);
-        painelLateral.setStyle("-fx-background-color: #1E222B;"); // Substituído o azul vibrante por cinza profundo
+        painelLateral.setStyle("-fx-background-color: #1E222B;");
         painelLateral.setPadding(new Insets(15));
         painelLateral.setAlignment(Pos.TOP_CENTER);
 
@@ -40,6 +43,9 @@ public class TelaPrincipal extends Application {
         ivOmega.setFitWidth(80);
         ivOmega.setPreserveRatio(true);
         VBox.setMargin(ivOmega, new Insets(0, 0, 20, 0));
+
+        // Configura a função de Home e os efeitos visuais no logotipo Omega
+        configurarIconeOmega(ivOmega, raiz);
 
         // 4. CRIAÇÃO DOS BOTÕES DO MENU
         Button btnHome = criarBotaoMenu("Home");
@@ -89,7 +95,7 @@ public class TelaPrincipal extends Application {
         raiz.setCenter(painelHome.criarPainelHome());
 
         // 7. CONFIGURAÇÕES FINAIS DA JANELA DO SISTEMA
-        Scene cena = new Scene(raiz, 950, 650); // Largura levemente aumentada para acomodar melhor os componentes
+        Scene cena = new Scene(raiz, 950, 650);
 
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagens/omega.png")));
         stage.setScene(cena);
@@ -114,5 +120,44 @@ public class TelaPrincipal extends Application {
             btn.setOnMouseEntered(event -> btn.setStyle(COR_HOVER + " -fx-cursor: hand;"));
             btn.setOnMouseExited(event -> btn.setStyle(COR_PADRAO + " -fx-cursor: hand;"));
         }
+    }
+
+    // 9. Metodo adiciona ação de clique e efeito de feedback visual ao aproximar e clicar no logotipo
+    private void configurarIconeOmega(ImageView ivOmega, BorderPane raiz) {
+        // Mudar o cursor para "mãozinha" ao passar por cima, indicando que é clicável
+        ivOmega.setCursor(Cursor.HAND);
+
+        // Criando o efeito de leve aumento de tamanho (Zoom)
+        ScaleTransition transicaoZoom = new ScaleTransition(Duration.millis(150), ivOmega);
+
+        ivOmega.setOnMouseEntered(event -> {
+            ivOmega.setOpacity(0.85); // Dá um feedback leve de iluminação/opacidade
+            transicaoZoom.setToX(1.08); // Aumenta 8% a largura
+            transicaoZoom.setToY(1.08); // Aumenta 8% a altura
+            transicaoZoom.playFromStart();
+        });
+
+        ivOmega.setOnMouseExited(event -> {
+            ivOmega.setOpacity(1.0); // Volta ao normal
+            transicaoZoom.setToX(1.0);
+            transicaoZoom.setToY(1.0);
+            transicaoZoom.playFromStart();
+        });
+
+        // Ação de clique para abrir a Home (Mesma lógica do seu botão Home)
+        ivOmega.setOnMouseClicked(event -> {
+            PainelHome painelHome = new PainelHome();
+            raiz.setCenter(painelHome.criarPainelHome());
+
+            // Efeito rápido de "click" encolhendo e voltando
+            ScaleTransition transicaoClique = new ScaleTransition(Duration.millis(80), ivOmega);
+            transicaoClique.setFromX(1.08);
+            transicaoClique.setFromY(1.08);
+            transicaoClique.setToX(0.95);
+            transicaoClique.setToY(0.95);
+            transicaoClique.setAutoReverse(true);
+            transicaoClique.setCycleCount(2);
+            transicaoClique.play();
+        });
     }
 }

@@ -3,7 +3,6 @@ package br.senac.sp.games_omega.ui.jogos;
 import br.senac.sp.games_omega.data.repository.JogoRepository;
 import br.senac.sp.games_omega.model.Jogo;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -66,7 +65,7 @@ public class PainelJogos {
         TableColumn<Jogo, String> colEstudio = new TableColumn<>("Estúdio");
         colEstudio.setCellValueFactory(new PropertyValueFactory<>("estudio"));
 
-        // COLUNA PREÇO: Alinhamento à direita e formatação de duas casas decimais (ex: 24.99, 249.00)
+        // COLUNA PREÇO: Alinhamento à direita e formatação de duas casas decimais
         TableColumn<Jogo, Double> colPreco = new TableColumn<>("Preço");
         colPreco.setCellValueFactory(new PropertyValueFactory<>("preco"));
         colPreco.setStyle("-fx-alignment: CENTER_RIGHT;");
@@ -90,7 +89,8 @@ public class PainelJogos {
 
         // Carregar os dados do repositório
         JogoRepository repository = new JogoRepository();
-        tabelaJogos.setItems(repository.getJogos());
+        javafx.collections.transformation.FilteredList<Jogo> dadosFiltrados = new javafx.collections.transformation.FilteredList<>(repository.getJogos(), j -> true);
+        tabelaJogos.setItems(dadosFiltrados);
 
         // 4. CONFIGURAÇÃO DO PAINEL DE BOTÕES
         HBox painelBotoes = new HBox();
@@ -101,12 +101,17 @@ public class PainelJogos {
         Button btnPesquisar = criarBotao("Pesquisar", "/imagens/pesquisar.png");
         Button btnLixeira = criarBotao("Lixeira", "/imagens/lixeira.png");
 
+        // BOTÃO LIMPAR FILTRO (INICIA OCULTO)
+        Button btnLimparFiltro = criarBotao("Limpar Filtro", "/imagens/clear-filter.png");
+        btnLimparFiltro.setVisible(false);
+        btnLimparFiltro.setManaged(false); // Faz o HBox ignorar o espaço dele enquanto invisível
+
         // --- LÓGICA: ADICIONAR JOGO ---
         btnAdicionar.setOnAction(event -> {
             TelaJogo telaCadastro = new TelaJogo();
             Stage stagePrincipal = (Stage) painelJogos.getScene().getWindow();
             telaCadastro.criarTela(stagePrincipal);
-            tabelaJogos.setItems(repository.getJogos());
+            tabelaJogos.refresh();
         });
 
         // --- LÓGICA: EXCLUIR JOGO ---
@@ -151,7 +156,7 @@ public class PainelJogos {
             java.util.Optional<ButtonType> resposta = confirmacao.showAndWait();
             if (resposta.isPresent() && resposta.get() == btnSim) {
                 repository.excluir(jogoSelecionado.getId());
-                tabelaJogos.setItems(repository.getJogos());
+                tabelaJogos.refresh();
             }
         });
 
@@ -181,7 +186,7 @@ public class PainelJogos {
             telaEdicao.configurarModoEdicao(jogoSelecionado);
             Stage stagePrincipal = (Stage) painelJogos.getScene().getWindow();
             telaEdicao.criarTela(stagePrincipal);
-            tabelaJogos.setItems(repository.getJogos());
+            tabelaJogos.refresh();
         });
 
         // --- LÓGICA: TELA LIXEIRA ---
@@ -190,8 +195,37 @@ public class PainelJogos {
             telaLixeira.criarTela((Stage) painelJogos.getScene().getWindow());
         });
 
+        // --- LÓGICA: PESQUISAR JOGO ---
+        btnPesquisar.setOnAction(event -> {
+            TelaPesquisa telaPesquisa = new TelaPesquisa();
+            Stage stagePrincipal = (Stage) painelJogos.getScene().getWindow();
+
+            boolean confirmou = telaPesquisa.exibirTela(stagePrincipal, dadosFiltrados);
+
+            if (confirmou) {
+                tabelaJogos.refresh();
+
+                // Se o predicate for nulo ou não for mais "j -> true", significa que tem filtro ativo!
+                boolean temFiltroAtivo = dadosFiltrados.getPredicate() != null;
+
+                // Mostra o botão dinamicamente na barra
+                btnLimparFiltro.setVisible(temFiltroAtivo);
+                btnLimparFiltro.setManaged(temFiltroAtivo);
+            }
+        });
+
+        // --- LÓGICA: LIMPAR FILTRO (RESETAR TABELA E OCULTAR BOTÃO) ---
+        btnLimparFiltro.setOnAction(event -> {
+            dadosFiltrados.setPredicate(jogo -> true);
+            tabelaJogos.refresh();
+
+            // Oculta o botão novamente e reorganiza o HBox
+            btnLimparFiltro.setVisible(false);
+            btnLimparFiltro.setManaged(false);
+        });
+
         // Montagem final do Layout
-        painelBotoes.getChildren().addAll(btnAdicionar, btnExcluir, btnEditar, btnPesquisar, btnLixeira);
+        painelBotoes.getChildren().addAll(btnAdicionar, btnExcluir, btnEditar, btnPesquisar, btnLimparFiltro, btnLixeira);
         painelJogos.getChildren().addAll(lbTitulo, linha, painelBotoes, tabelaJogos);
 
         return painelJogos;
@@ -220,7 +254,7 @@ public class PainelJogos {
                         "-fx-padding: 6 12 6 12;"
         );
 
-        // Dinâmica de Hover (Efeito ao passar e retirar o ponteiro do mouse)
+        // Dinâmica de Hover
         btn.setOnMouseEntered(e -> btn.setStyle(
                 "-fx-cursor: hand; -fx-background-color: #434857; -fx-text-fill: #E5A93C; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 6 12 6 12;"
         ));
