@@ -36,7 +36,7 @@ public class TelaPesquisa {
         VBox raiz = new VBox();
         raiz.setStyle("-fx-background-color: #252830;");
 
-        // Cabeçalho idêntico ao padrão do sistema
+        // Cabeçalho padrão do sistema
         HBox painelTitulo = criarPainelTitulo();
 
         // 2. PAINEL DO FORMULÁRIO DE BUSCA

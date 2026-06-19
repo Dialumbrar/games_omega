@@ -47,7 +47,7 @@ public class TelaPlataforma {
         painelFormulario.setPadding(new Insets(20));
         VBox.setMargin(painelFormulario, new Insets(15));
 
-        // Fundo ligeiramente mais escuro e remoção da borda antiga
+        // Fundo ligeiramente mais escuro
         painelFormulario.setStyle(
                 "-fx-background-color: #1E222B; " +
                         "-fx-background-radius: 8; " +

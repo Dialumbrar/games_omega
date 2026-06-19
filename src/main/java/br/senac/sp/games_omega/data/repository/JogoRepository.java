@@ -233,10 +233,10 @@ public class JogoRepository {
                 // 1. EXECUTA A BUSCA DOS DADOS NA LIXEIRA DA FORMA CORRETA
                 stmtBuscar.setInt(1, id);
 
-                // Primeiro executamos a query para abrir o ResultSet (rs)
+                // Primeiro executa a query para abrir o ResultSet (rs)
                 try (ResultSet rs = stmtBuscar.executeQuery()) {
 
-                    // Agora sim usamos o .next() no ResultSet para validar se achou o jogo
+                    // Agora sim usa o .next() no ResultSet para validar se achou o jogo
                     if (rs.next()) {
                         String titulo = rs.getString("titulo");
                         String nomePlat = rs.getString("plataforma");

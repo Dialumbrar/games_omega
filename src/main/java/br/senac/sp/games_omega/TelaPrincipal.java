@@ -29,7 +29,7 @@ public class TelaPrincipal extends Application {
 
         BorderPane raiz = new BorderPane();
 
-        // 2. CONFIGURAÇÃO DA BARRA LATERAL (CINZA BEM ESCURO - ESTILO STEAM)
+        // 2. CONFIGURAÇÃO DA BARRA LATERAL (ESTILO STEAM)
         VBox painelLateral = new VBox();
         painelLateral.setSpacing(10);
         painelLateral.setPrefWidth(150);
@@ -124,14 +124,14 @@ public class TelaPrincipal extends Application {
 
     // 9. Metodo adiciona ação de clique e efeito de feedback visual ao aproximar e clicar no logotipo
     private void configurarIconeOmega(ImageView ivOmega, BorderPane raiz) {
-        // Mudar o cursor para "mãozinha" ao passar por cima, indicando que é clicável
+        // Mudar o cursor para "mãozinha" ao passar por cima.
         ivOmega.setCursor(Cursor.HAND);
 
         // Criando o efeito de leve aumento de tamanho (Zoom)
         ScaleTransition transicaoZoom = new ScaleTransition(Duration.millis(150), ivOmega);
 
         ivOmega.setOnMouseEntered(event -> {
-            ivOmega.setOpacity(0.85); // Dá um feedback leve de iluminação/opacidade
+            ivOmega.setOpacity(0.85); // Feedback leve de iluminação/opacidade
             transicaoZoom.setToX(1.08); // Aumenta 8% a largura
             transicaoZoom.setToY(1.08); // Aumenta 8% a altura
             transicaoZoom.playFromStart();

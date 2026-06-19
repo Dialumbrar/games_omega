@@ -38,7 +38,7 @@ public class TelaEstudio {
         painelFormulario.setPadding(new Insets(20));
         VBox.setMargin(painelFormulario, new Insets(15));
 
-        // Fundo ligeiramente mais escuro e remoção da borda antiga azul/esmeralda
+        // Fundo ligeiramente mais escuro
         painelFormulario.setStyle(
                 "-fx-background-color: #1E222B; " +
                         "-fx-background-radius: 8; " +
@@ -77,7 +77,7 @@ public class TelaEstudio {
             txtPais.setText(estudioEmEdicao.getPaisOrigem());
         }
 
-        // Mapeamento dos Labels usando o método customizado para cor branca estável
+        // Mapeamento dos Labels usando o metodo customizado para cor branca estável
         grid.add(criarLabelFormulario("ID:"), 0, 0);
         grid.add(txtId, 1, 0);
 
@@ -194,7 +194,6 @@ public class TelaEstudio {
             System.err.println("Erro ao carregar ícone dinâmico do título do cabeçalho");
         }
 
-        // Correção de texto: Trocado de "Jogo" para "Estúdio"
         Label lbTitulo = new Label(estudioEmEdicao != null ? "Editar Estúdio Selecionado" : "Cadastro de Estúdio");
         lbTitulo.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
         painelTitulo.getChildren().add(lbTitulo);

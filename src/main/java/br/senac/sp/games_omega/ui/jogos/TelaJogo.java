@@ -32,7 +32,7 @@ public class TelaJogo {
     private DatePicker dpLancamento;
     private CheckBox cbFinalizado;
 
-    // Objeto que guardará os dados do jogo caso a tela seja aberta para Editar
+    // Guardará os dados do jogo caso a tela seja aberta para Editar
     private Jogo jogoEmEdicao = null;
 
     public void criarTela(Stage stagePai) {

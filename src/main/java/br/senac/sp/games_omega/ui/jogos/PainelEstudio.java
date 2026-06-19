@@ -77,7 +77,7 @@ public class PainelEstudio {
                     System.err.println("Erro ao carregar o ícone da barra de título.");
                 }
 
-                // Configura o ícone interno 'atenção.png'
+                // Configura o ícone interno
                 try {
                     ImageView imagemCustomizada = new ImageView(new Image(getClass().getResourceAsStream("/imagens/atenção.png")));
                     imagemCustomizada.setFitWidth(35);
@@ -127,7 +127,7 @@ public class PainelEstudio {
                 return;
             }
 
-            // Botões customizados em Português
+            // Botões customizados
             ButtonType btnSim = new ButtonType("Sim", ButtonBar.ButtonData.YES);
             ButtonType btnNao = new ButtonType("Não", ButtonBar.ButtonData.NO);
 
@@ -146,7 +146,7 @@ public class PainelEstudio {
                 System.err.println("Não foi possível carregar o ícone do alerta.");
             }
 
-            // Altera o ícone interno grande (Muda o '?' clássico por uma lixeira)
+            // Altera o ícone interno grande (Muda o '?' por uma lixeira)
             try {
                 ImageView imagemCustomizada = new ImageView(new Image(getClass().getResourceAsStream("/imagens/lixeira.png")));
                 imagemCustomizada.setFitWidth(30);

@@ -49,7 +49,7 @@ public class PainelHome {
         painelCentral.setStyle(
                 "-fx-background-color: #1E222B; " + // Fundo levemente mais escuro que o geral
                         "-fx-background-radius: 8; " +
-                        "-fx-border-color: #333742; " +     // Borda sutil para dar profundidade
+                        "-fx-border-color: #333742; " + // Borda sutil para dar profundidade
                         "-fx-border-radius: 8;"
         );
         painelCentral.setPrefHeight(120);
